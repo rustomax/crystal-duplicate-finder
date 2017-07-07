@@ -1,0 +1,7 @@
+/doc/
+/lib/
+/bin/
+/.shards/
+/target/
+.DS_Store
+*.out

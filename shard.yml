@@ -1,0 +1,17 @@
+name: dedup
+version: 0.1.0
+
+authors:
+  - Max Skybin <git@skybin.net>
+
+targets:
+  dedup:
+    main: src/dedup-cr.cr
+
+crystal: 0.23.0
+
+license: GPL v3.0
+
+dependencies:
+  murmur3:
+    github: kuende/murmur3

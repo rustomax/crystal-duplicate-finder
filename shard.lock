@@ -1,0 +1,6 @@
+version: 1.0
+shards:
+  murmur3:
+    github: kuende/murmur3
+    version: 0.2.0
+
