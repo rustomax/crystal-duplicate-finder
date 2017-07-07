@@ -104,7 +104,6 @@ module Dedup
   end
 
   # Writes file names of duplicate files to an output file
-  # TODO: Figure out why ~ doesn't work in file names
   def Dedup.write_list_of_duplicates_to_file(hashes, options)
     print "Step 5/5: Writing results to output file          "
     buffer = String::Builder.new
