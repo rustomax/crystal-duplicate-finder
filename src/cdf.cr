@@ -145,7 +145,7 @@ module Dedup
     exit 1 if exit?
   end
 
-  # ### MAIN PROGRAM ####
+  # ### MAIN PROGRAM ###
 
   # Get command line options
   options = OptParse::Options.new
@@ -169,6 +169,6 @@ module Dedup
   puts "Duplicate files  : #{dup_files}"
   printf "Analysis completed in %02dm %02ds\n", time.minutes, time.seconds
 
-  # ### END MAIN PROGRAM ####
+  # ### END MAIN PROGRAM ###
 
 end
