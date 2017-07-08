@@ -18,7 +18,10 @@ module Dedup
     file_list
   end
 
-  def Dedup.filter_by_options(file_list, options)
+  # Narrows down the list of possible duplicate candidates
+  # by filtering out files based on file type and user-selected options
+  # i.e hidden or zero-length files, directories, etc.
+  def Dedup.filter_by_file_type(file_list, options)
     print "Step 2/5: Narrowing down the list (by options)    "
     filtered_file_list = Array(String).new
     file_list.each do |file|
@@ -67,13 +70,14 @@ module Dedup
     filtered_file_list
   end
 
-  # Hash all files in the file_list and return Hash with duplicates only
+  # Hash all files in the file_list and return a Hash with duplicates only
   def Dedup.find_dups_by_hash(file_list)
     print "Step 4/5: Identifying duplicates (may take a bit) "
     all_hashes = {} of String => Array(String)
     duplicate_hashes = {} of String => Array(String)
     file_list.each do |file|
       begin
+        # TODO: Find more efficient way to do this for large files
         buffer = File.new file
         hash = "F" + Murmur3.h1(buffer.gets_to_end.to_s).to_s
         buffer.close
@@ -156,7 +160,7 @@ module Dedup
 
   # Main processing logic
   file_list = get_from_fs options
-  file_list = filter_by_options file_list, options
+  file_list = filter_by_file_type file_list, options
   file_list = filter_by_size file_list
   hashes = find_dups_by_hash file_list
   write_to_file hashes, options
