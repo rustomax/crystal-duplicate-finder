@@ -13,7 +13,7 @@ module Dedup
     rescue
       error_message "Fatal: Could not read '#{options.root_dir}'", true
     else
-      puts "#{file_list.size} total files".colorize :green
+      puts "#{file_list.size} total files and directores".colorize :green
     end
     file_list
   end
