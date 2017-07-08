@@ -4,21 +4,21 @@ require "murmur3"
 
 module Dedup
   # Returns file list matching specific pattern from filesystem
-  def Dedup.get_file_list_from_fs(options)
+  def Dedup.get_from_fs(options)
     print "\nStep 1/5: Getting the list of files               "
     file_list = Array(String).new
     path = options.root_dir + options.pattern
     begin
       file_list = Dir[path]
     rescue
-      error_message "Fatal: Could not read '#{options.root_dir}'", true
+      print_error_message "Fatal: Could not read '#{options.root_dir}'", true
     else
       puts "#{file_list.size} total files and directores".colorize :green
     end
     file_list
   end
 
-  def Dedup.discard_files_based_on_options(file_list, options)
+  def Dedup.filter_by_options(file_list, options)
     print "Step 2/5: Narrowing down the list (by options)    "
     filtered_file_list = Array(String).new
     file_list.each do |file|
@@ -39,7 +39,7 @@ module Dedup
 
   # Narrows down the list of possible duplicate candidates
   # by filtering out files with unque sizes
-  def Dedup.discard_files_with_unique_sizes(file_list)
+  def Dedup.filter_by_size(file_list)
     print "Step 3/5: Narrowing down the list (by size)       "
     filtered_file_list = Array(String).new
     sizes = {} of UInt64 => Array(String)
@@ -68,7 +68,7 @@ module Dedup
   end
 
   # Hash all files in the file_list and return Hash with duplicates only
-  def Dedup.hash_files_and_find_duplicates(file_list)
+  def Dedup.find_dups_by_hash(file_list)
     print "Step 4/5: Identifying duplicates (may take a bit) "
     all_hashes = {} of String => Array(String)
     duplicate_hashes = {} of String => Array(String)
@@ -98,13 +98,13 @@ module Dedup
         end
       end
     end
-    dup_groups, dup_files = get_analysis_summary duplicate_hashes
+    dup_groups, dup_files = get_summary duplicate_hashes
     puts "#{dup_files} duplicates found".colorize :green
     duplicate_hashes
   end
 
   # Writes file names of duplicate files to an output file
-  def Dedup.write_list_of_duplicates_to_file(hashes, options)
+  def Dedup.write_to_file(hashes, options)
     print "Step 5/5: Writing results to output file          "
     buffer = String::Builder.new
     buffer << "Duplicate files\n"
@@ -121,14 +121,14 @@ module Dedup
       File.write options.out_file, buffer.to_s
       out_file.close
     rescue
-      error_message "Fatal: Could not write to file '#{options.out_file}'", true
+      print_error_message "Fatal: Could not write to file '#{options.out_file}'", true
     else
       puts "saved to '#{options.out_file}'".colorize :green
     end
   end
 
   # Helper function. Returns summary of file analysis
-  def Dedup.get_analysis_summary(hashes)
+  def Dedup.get_summary(hashes)
     dup_groups = 0
     dup_files = 0
     hashes.each do |hash, files|
@@ -140,7 +140,7 @@ module Dedup
 
   # Helper function: Prints error message
   # and optionally exits the program
-  def Dedup.error_message(message, exit?)
+  def Dedup.print_error_message(message, exit?)
     puts message.colorize :red
     exit 1 if exit?
   end
@@ -155,14 +155,14 @@ module Dedup
   time = Time.now
 
   # Main processing logic
-  file_list = get_file_list_from_fs options
-  file_list = discard_files_based_on_options file_list, options
-  file_list = discard_files_with_unique_sizes file_list
-  hashes = hash_files_and_find_duplicates file_list
-  write_list_of_duplicates_to_file hashes, options
+  file_list = get_from_fs options
+  file_list = filter_by_options file_list, options
+  file_list = filter_by_size file_list
+  hashes = find_dups_by_hash file_list
+  write_to_file hashes, options
 
   # Print summary
-  dup_groups, dup_files = get_analysis_summary hashes
+  dup_groups, dup_files = get_summary hashes
   time = Time.now - time
   puts "\nSummary".colorize :green
   puts "Duplicate groups : #{dup_groups}"
