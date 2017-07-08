@@ -52,7 +52,7 @@ module Dedup
       rescue
         # silently ignore files we could not get sizes for
       else
-        if sizes[size]?
+        if sizes.has_key? size
           sizes[size] += [file]
         else
           sizes[size] = [file]
@@ -84,7 +84,7 @@ module Dedup
       rescue
         # silently ignore files we could not hash
       else
-        if all_hashes[hash]?
+        if all_hashes.has_key? hash
           all_hashes[hash] += [file]
         else
           all_hashes[hash] = [file]
@@ -94,7 +94,7 @@ module Dedup
     all_hashes.each do |hash, files|
       if files.size > 1
         files.each do |file|
-          if duplicate_hashes[hash]?
+          if duplicate_hashes.has_key? hash
             duplicate_hashes[hash] += [file]
           else
             duplicate_hashes[hash] = [file]
