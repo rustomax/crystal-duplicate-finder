@@ -1,0 +1,5 @@
+files: ./**/*.cr
+run: crystal build ./src/cdf.cr -o ./target/cdf
+---
+files: ./shard.yml
+run: crystal deps
