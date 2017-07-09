@@ -67,11 +67,7 @@ class CDF
       rescue
         # silently ignore files we could not get sizes for
       else
-        if sizes.has_key? size
-          sizes[size] += [file]
-        else
-          sizes[size] = [file]
-        end
+        sizes[size] = sizes[size]? ? sizes[size] + [file] : [file]
       end
     end
     @file_list.clear
@@ -93,11 +89,7 @@ class CDF
       rescue
         # silently ignore files we could not hash
       else
-        if @hashes.has_key? hash
-          @hashes[hash] += [file]
-        else
-          @hashes[hash] = [file]
-        end
+        @hashes[hash] = @hashes[hash]? ? @hashes[hash] + [file] : [file]
       end
     end
     @hashes.each do |hash, files|
@@ -133,12 +125,8 @@ class CDF
 
   # Helper function. Returns summary of file analysis
   def get_summary
-    dup_groups = 0
-    dup_files = 0
-    @hashes.each do |hash, files|
-      dup_groups += 1
-      dup_files += files.size
-    end
+    dup_groups = @hashes.size
+    dup_files = @hashes.reduce(0) { |acc, hash_files| acc + hash_files[1].size }
     [dup_groups, dup_files]
   end
 
