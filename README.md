@@ -30,7 +30,7 @@ command [arguments]
 
 ## Sample run
 
-Recursively list all files in the directory `test_files` including zero-length (`-z`) and hidden (`-n`) files and save the results in `dup_report.out`
+> Recursively list all files in the directory `test_files` including zero-length (`-z`) and hidden (`-n`) files and save the results in `report.out`
 ```
 $ ./cdf -d test_files -n -z -o report.out
 
