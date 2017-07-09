@@ -43,13 +43,13 @@ class CDF
     print "Step 2/5: Narrowing down the list (by file type)  "
     @file_list.reject! do |file|
       begin
-        delete_file = !File.file?(file) || File.symlink?(file) ||
-                      (File.size(file) == 0 && !@options.zero_len) ||
-                      (File.basename(file)[0] == '.' && !@options.hidden)
+        is_delete_file = !File.file?(file) || File.symlink?(file) ||
+                         (File.size(file) == 0 && !@options.zero_len) ||
+                         (File.basename(file)[0] == '.' && !@options.hidden)
       rescue
         true # stop processing files we could not stat
       else
-        delete_file
+        is_delete_file
       end
     end
 
@@ -70,10 +70,10 @@ class CDF
         sizes[size] = sizes[size]? ? sizes[size] + [file] : [file]
       end
     end
-    @file_list.clear
-    sizes.each do |size, files|
-      @file_list += files if files.size > 1
-    end
+    @file_list = sizes
+      .select { |size, files| files.size > 1 }
+      .map { |size_files| size_files[1] }
+      .flatten
     puts "#{@file_list.size} candidates found".colorize :green
   end
 
@@ -92,9 +92,7 @@ class CDF
         @hashes[hash] = @hashes[hash]? ? @hashes[hash] + [file] : [file]
       end
     end
-    @hashes.each do |hash, files|
-      @hashes.delete(hash) if files.size < 2
-    end
+    @hashes.reject! { |hash, files| files.size < 2 }
     dup_groups, dup_files = get_summary
     puts "#{dup_files} duplicates found".colorize :green
   end
