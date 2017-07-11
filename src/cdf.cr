@@ -43,13 +43,13 @@ class CDF
     print "Step 2/5: Narrowing down the list (by file type)  "
     @file_list.reject! do |file|
       begin
-        is_delete_file = !File.file?(file) || File.symlink?(file) ||
-                         (File.size(file) == 0 && !@options.zero_len) ||
-                         (File.basename(file)[0] == '.' && !@options.hidden)
+        delete_file? = !File.file?(file) || File.symlink?(file) ||
+                       (File.size(file) == 0 && !@options.zero_len) ||
+                       (File.basename(file)[0] == '.' && !@options.hidden)
       rescue
         true # stop processing files we could not stat
       else
-        is_delete_file
+        delete_file?
       end
     end
 
