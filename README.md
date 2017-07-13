@@ -8,6 +8,7 @@ Command line utility written in [Crystal](https://crystal-lang.org/) to find dup
 
 ```sh
 git clone https://github.com/rustomax/crystal-duplicate-finder.git
+cd crystal-duplicate-finder
 crystal deps
 crystal build src/cdf.cr -o cdf --release
 ./cdf [arguments]
