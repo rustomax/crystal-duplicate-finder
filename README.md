@@ -2,6 +2,8 @@
 
 Command line utility written in [Crystal](https://crystal-lang.org/) to find duplicate files. This program does not delete any files. It generates a list of duplicates in a specific directory (use `-d` command line switch) for you to review and deal with them as you see fit.
 
+[![Build Status](https://travis-ci.org/rustomax/crystal-duplicate-finder.svg?branch=master)](https://travis-ci.org/rustomax/crystal-duplicate-finder)
+
 ## Compile and Run
 
 > Currently Crystal only supports \*nix operating systems, including Linux and OSX. There is no compiler available for Windows.
