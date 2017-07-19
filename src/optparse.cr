@@ -3,13 +3,14 @@ require "colorize"
 
 module OptParse
   struct Options
-    property root_dir, out_file, pattern, zero_len, hidden
+    property root_dir, out_file, pattern, zero_len, hidden, quiet
 
     def initialize(@root_dir : String = ".",
                    @out_file : String = "report.out",
                    @pattern : String = "/**/*",
                    @zero_len : Bool = false,
-                   @hidden : Bool = false)
+                   @hidden : Bool = false,
+                   @quiet : Bool = false)
     end
   end
 
@@ -23,9 +24,10 @@ module OptParse
     -p regex, --pattern regex   Search pattern (default = search all files)
                                 ex: -p \"*.txt\" search text files
                                 ex: -p \"*.{doc*,ppt*,xls*}\" search MS Office files
-    -z,         --zero          Include zero-length files in analysis (disabled by default)
-    -n,         --hidden        Include hidden files in analysis (disabled by default)
-    -h,         --help          Show this help
+    -z,       --zero            Include zero-length files in analysis (disabled by default)
+    -n,       --hidden          Include hidden files in analysis (disabled by default)
+    -q,       --quiet           Hide progress messages
+    -h,       --help            Show this help
     HELPMESSAGE
   end
 
@@ -51,6 +53,10 @@ module OptParse
 
         parser.on("-n", "--hidden", "Include hidden files in analysis") do |opt_hidden|
           options.hidden = opt_hidden.to_s.empty?
+        end
+
+        parser.on("-q", "--quiet", "Hide progress messages") do |opt_hidden|
+          options.quiet = opt_hidden.to_s.empty?
         end
 
         parser.on("-h", "--help", "Show this help") do

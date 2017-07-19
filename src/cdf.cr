@@ -7,6 +7,14 @@ class CDF
   alias Sizes = Hash(UInt64, Array(String))
   alias Hashes = Hash(String, Array(String))
 
+  enum MessageType
+    StatusNewLine
+    StatusNoNewLine
+    DoneSuccess
+    DoneError
+    DoneErrorExit
+  end
+
   def initialize(file_list : FileList = FileList.new,
                  options : OptParse::Options = OptParse::Options.new,
                  hashes : Hashes = Hashes.new,
@@ -24,15 +32,15 @@ class CDF
 
   # Returns file list matching specific pattern from filesystem
   def get_files_from_fs
-    print "\nStep 1/5: Getting the list of files               "
+    print_message "\nStep 1/5: Getting the list of files               "
     @file_list = FileList.new
     path = @options.root_dir + @options.pattern
     begin
       @file_list = Dir[path]
     rescue
-      print_error_message "Fatal: Could not read '#{@options.root_dir}'", true
+      print_message "Fatal: Could not read '#{@options.root_dir}'", MessageType::DoneErrorExit
     else
-      puts "#{@file_list.size} total files and directores".colorize :green
+      print_message "#{@file_list.size} total files and directores", MessageType::DoneSuccess
     end
   end
 
@@ -40,7 +48,7 @@ class CDF
   # by filtering out files based on file type and user-selected options
   # i.e hidden or zero-length files, directories, etc.
   def filter_by_type
-    print "Step 2/5: Narrowing down the list (by file type)  "
+    print_message "Step 2/5: Narrowing down the list (by file type)  "
     @file_list.reject! do |file|
       begin
         delete_file? = !File.file?(file) || File.symlink?(file) ||
@@ -53,13 +61,13 @@ class CDF
       end
     end
 
-    puts "#{@file_list.size} candidates found".colorize :green
+    print_message "#{@file_list.size} candidates found", MessageType::DoneSuccess
   end
 
   # Narrows down the list of possible duplicate candidates
   # by filtering out files with unque sizes
   def filter_by_size
-    print "Step 3/5: Narrowing down the list (by size)       "
+    print_message "Step 3/5: Narrowing down the list (by size)       "
     sizes = Sizes.new
     @file_list.each do |file|
       begin
@@ -74,12 +82,12 @@ class CDF
       .select { |size, files| files.size > 1 }
       .map { |size_files| size_files[1] }
       .flatten
-    puts "#{@file_list.size} candidates found".colorize :green
+    print_message "#{@file_list.size} candidates found", MessageType::DoneSuccess
   end
 
   # Hash all files in the file_list and return a Hash with duplicates only
   def find_dups_by_hash
-    print "Step 4/5: Identifying duplicates (may take a bit) "
+    print_message "Step 4/5: Identifying duplicates (may take a bit) "
     @file_list.each do |file|
       begin
         # TODO: Find more efficient way to do this for large files
@@ -94,12 +102,12 @@ class CDF
     end
     @hashes.reject! { |hash, files| files.size < 2 }
     dup_groups, dup_files = get_summary
-    puts "#{dup_files} duplicates found".colorize :green
+    print_message "#{dup_files} duplicates found", MessageType::DoneSuccess
   end
 
   # Writes file names of duplicate files to an output file
   def write_to_file
-    print "Step 5/5: Writing results to output file          "
+    print_message "Step 5/5: Writing results to output file          "
     buffer = String::Builder.new
     buffer << "Duplicate files\n"
     @hashes.each do |hash, files|
@@ -115,9 +123,21 @@ class CDF
       File.write @options.out_file, buffer.to_s
       out_file.close
     rescue
-      print_error_message "Fatal: Could not write to file '#{@options.out_file}'", true
+      print_message "Fatal: Could not write to file '#{@options.out_file}'", MessageType::DoneErrorExit
     else
-      puts "saved to '#{@options.out_file}'".colorize :green
+      print_message "saved to '#{@options.out_file}'", MessageType::DoneSuccess
+    end
+  end
+
+  # Prints analysis summary on-screen
+  def print_summary
+    if !@options.quiet
+      dup_groups, dup_files = get_summary
+      elapsed_time = Time.now - @start_time
+      puts "\nSummary".colorize :green
+      puts "Duplicate groups : #{dup_groups}"
+      puts "Duplicate files  : #{dup_files}"
+      printf "Analysis completed in %02dm %02ds\n", elapsed_time.minutes, elapsed_time.seconds
     end
   end
 
@@ -128,20 +148,23 @@ class CDF
     [dup_groups, dup_files]
   end
 
-  # Prints analysis summary on-screen
-  def print_summary
-    dup_groups, dup_files = get_summary
-    elapsed_time = Time.now - @start_time
-    puts "\nSummary".colorize :green
-    puts "Duplicate groups : #{dup_groups}"
-    puts "Duplicate files  : #{dup_files}"
-    printf "Analysis completed in %02dm %02ds\n", elapsed_time.minutes, elapsed_time.seconds
-  end
-
-  # Helper function: Prints error message and optionally exits the program
-  def print_error_message(message, exit?)
-    puts message.colorize :red
-    exit 1 if exit?
+  # Helper function: Prints various message types and optionally quits
+  def print_message(message_text, message_type = MessageType::StatusNoNewLine)
+    if !@options.quiet
+      print case message_type
+      when MessageType::DoneSuccess
+        (message_text + "\n").colorize :green
+      when MessageType::StatusNoNewLine
+        message_text
+      when MessageType::StatusNewLine
+        message_text + "\n"
+      when MessageType::DoneError
+        (message_text + "\n").colorize :red
+      when MessageType::DoneErrorExit
+        (message_text + "\n").colorize :red
+      end
+    end
+    exit 1 if message_type == MessageType::DoneErrorExit
   end
 end
 
