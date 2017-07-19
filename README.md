@@ -19,16 +19,19 @@ crystal build src/cdf.cr -o cdf --release
 ## Usage
 
 ```
-command [arguments]
+Identify duplicate files in a directory
+Usage: command [arguments]
+
 -d path, --dir path         Dir where to search for duplicates (default = current dir)
--o file, --output file      Output file (default = report.out)
+-o file, --output file      Output file (default = duplicates.out)
                             Paths for -d and -o can be relative or absolute
 -p regex, --pattern regex   Search pattern (default = search all files)
                             ex: -p "*.txt" search text files
                             ex: -p "*.{doc*,ppt*,xls*}" search MS Office files
--z,         --zero          Include zero-length files in analysis (disabled by default)
--n,         --hidden        Include hidden files in analysis (disabled by default)
--h,         --help          Show this help
+-z,       --zero            Include zero-length files in analysis (disabled by default)
+-n,       --hidden          Include hidden files in analysis (disabled by default)
+-q,       --quiet           Hide progress messages
+-h,       --help            Show this help
 ```
 
 ## Sample run
