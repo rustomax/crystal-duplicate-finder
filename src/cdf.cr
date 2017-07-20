@@ -8,11 +8,10 @@ class CDF
   alias Hashes = Hash(String, Array(String))
 
   enum MessageType
+    Status
     StatusNewLine
-    StatusNoNewLine
-    DoneSuccess
-    DoneError
-    DoneErrorExit
+    Success
+    Error
   end
 
   def initialize(file_list : FileList = FileList.new,
@@ -38,9 +37,10 @@ class CDF
     begin
       @file_list = Dir[path]
     rescue
-      print_message "Fatal: Could not read '#{@options.root_dir}'", MessageType::DoneErrorExit
+      print_message "Fatal: Could not read '#{@options.root_dir}'", MessageType::Error
+      exit 1
     else
-      print_message "#{@file_list.size} total files and directores", MessageType::DoneSuccess
+      print_message "#{@file_list.size} total files and directores", MessageType::Success
     end
   end
 
@@ -61,7 +61,7 @@ class CDF
       end
     end
 
-    print_message "#{@file_list.size} candidates found", MessageType::DoneSuccess
+    print_message "#{@file_list.size} candidates found", MessageType::Success
   end
 
   # Narrows down the list of possible duplicate candidates
@@ -82,7 +82,7 @@ class CDF
       .select { |size, files| files.size > 1 }
       .map { |size_files| size_files[1] }
       .flatten
-    print_message "#{@file_list.size} candidates found", MessageType::DoneSuccess
+    print_message "#{@file_list.size} candidates found", MessageType::Success
   end
 
   # Hash all files in the file_list and return a Hash with duplicates only
@@ -102,7 +102,7 @@ class CDF
     end
     @hashes.reject! { |hash, files| files.size < 2 }
     dup_groups, dup_files = get_summary
-    print_message "#{dup_files} duplicates found", MessageType::DoneSuccess
+    print_message "#{dup_files} duplicates found", MessageType::Success
   end
 
   # Writes file names of duplicate files to an output file
@@ -123,9 +123,10 @@ class CDF
       File.write @options.out_file, buffer.to_s
       out_file.close
     rescue
-      print_message "Fatal: Could not write to file '#{@options.out_file}'", MessageType::DoneErrorExit
+      print_message "Fatal: Could not write to file '#{@options.out_file}'", MessageType::Error
+      exit 1
     else
-      print_message "saved to '#{@options.out_file}'", MessageType::DoneSuccess
+      print_message "saved to '#{@options.out_file}'", MessageType::Success
     end
   end
 
@@ -149,22 +150,19 @@ class CDF
   end
 
   # Helper function: Prints various message types and optionally quits
-  def print_message(message_text, message_type = MessageType::StatusNoNewLine)
+  def print_message(message_text, message_type = MessageType::Status)
     if !@options.quiet
       print case message_type
-      when MessageType::DoneSuccess
+      when MessageType::Success
         (message_text + "\n").colorize :green
-      when MessageType::StatusNoNewLine
+      when MessageType::Status
         message_text
       when MessageType::StatusNewLine
         message_text + "\n"
-      when MessageType::DoneError
-        (message_text + "\n").colorize :red
-      when MessageType::DoneErrorExit
+      when MessageType::Error
         (message_text + "\n").colorize :red
       end
     end
-    exit 1 if message_type == MessageType::DoneErrorExit
   end
 end
 
